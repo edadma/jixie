@@ -5,6 +5,7 @@ import scala.annotation.tailrec
 def eval(env: Scope, code: Any): Any =
   def eval(code: Any): Any =
     code match
+      case Seq(name: String, )
       case s: Seq[?] => evalSequence(s)
       case v         => v
 
