@@ -20,7 +20,7 @@ class Interpreter:
   val functions = new mutable.HashMap[String, JixieFunction]
 
   List(
-    BuiltinFunction("+", args => args(0).asInstanceOf[Number].doubleValue + args(1).asInstanceOf[Number].doubleValue),
+    BuiltinFunction("+", _.asInstanceOf[Seq[Number]].map(_.doubleValue).sum),
   ) foreach { case f @ BuiltinFunction(name, _) =>
     functions(name) = f
   }
