@@ -2,8 +2,6 @@ package io.github.edadma.jixie
 
 import scala.annotation.tailrec
 
-var formEscape = Map.empty
-
 def eval(env: Env, code: List[Any]): Any =
   @tailrec
   def eval(code: List[Any], result: Any = ()): Any =
@@ -12,8 +10,9 @@ def eval(env: Env, code: List[Any]): Any =
         eval(
           tail,
           head match
-            case List(formEscape, name: String) =>
-            case v                              => v,
+            case list: List[?] =>
+
+            case v => v,
         )
       case Nil => result
 
