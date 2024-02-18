@@ -1,4 +1,9 @@
 package io.github.edadma.jixie
 
+import pprint.pprintln
+
 @main def run(): Unit =
-  println("Hello world")
+  val interp = new Interpreter
+  val result = interp.run(Seq(123))
+
+  pprintln(result)

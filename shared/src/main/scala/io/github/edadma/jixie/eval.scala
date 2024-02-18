@@ -2,18 +2,16 @@ package io.github.edadma.jixie
 
 import scala.annotation.tailrec
 
-def eval(env: Env, code: List[Any]): Any =
-  @tailrec
-  def eval(code: List[Any], result: Any = ()): Any =
+def eval(env: Scope, code: Any): Any =
+  def eval(code: Any): Any =
     code match
-      case head :: tail =>
-        eval(
-          tail,
-          head match
-            case list: List[?] =>
+      case s: Seq[?] => evalSequence(s)
+      case v         => v
 
-            case v => v,
-        )
-      case Nil => result
+  @tailrec
+  def evalSequence(code: Seq[Any], result: Any = ()): Any =
+    code match
+      case head :: tail => evalSequence(tail, eval(head))
+      case Nil          => result
 
   eval(code)
