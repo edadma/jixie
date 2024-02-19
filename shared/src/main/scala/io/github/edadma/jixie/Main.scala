@@ -11,7 +11,9 @@ import io.github.edadma.json.DefaultJSONReader
       """
         |[
         |  ["define", "x", 3],
-        |  ["display", "answer", ["+", "x", 4]]
+        |  ["display", ["+", "x", 4]],
+        |  ["define", "y", ["quote", "x"]],
+        |  ["display", "y"]
         |]
         |""".stripMargin,
     )
