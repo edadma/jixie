@@ -9,6 +9,7 @@ case object NUMBER extends Type
 case object ANY extends Type
 
 abstract class Define { val name: String }
+case class BuiltinFunction(name: String, func: IndexedSeq[Any] => Any) extends Define
 case class Builtin(name: String, func: (Scope, IndexedSeq[Any]) => Any) extends Define
 case class Variable(name: String, var value: Any) extends Define
 
@@ -16,14 +17,14 @@ class Interpreter:
   val global: Scope = new Scope
 
   List(
-    Builtin("+", (sc, args) => evalSeq(sc, args).asInstanceOf[Seq[Number]].map(_.doubleValue).sum),
+    BuiltinFunction("+", _.asInstanceOf[Seq[Number]].map(_.doubleValue).sum),
+    BuiltinFunction("display", args => println(args mkString ", ")),
     Builtin("begin", (sc, args) => evalBegin(sc, args)),
     Builtin(
       "define",
       (sc, args) => sc define Variable(args(0).toString, eval(sc, args(1))),
     ),
     Builtin("quote", (_, args) => args(0)),
-    Builtin("display", (sc, args) => println(evalSeq(sc, args) mkString ", ")),
   ) foreach (df => global define df)
 
   def run(code: Seq[Any]): Any = evalBegin(global, code)
@@ -32,8 +33,9 @@ class Interpreter:
     code match
       case Seq(name: String, args*) if sc contains name =>
         sc(name) match
-          case Builtin(_, func) => func(sc, args.toIndexedSeq)
-          case _                => ???
+          case BuiltinFunction(_, func) => func(evalSeq(sc, args).toIndexedSeq)
+          case Builtin(_, func)         => func(sc, args.toIndexedSeq)
+          case _                        => ???
       case s: Seq[?]                  => evalSeq(sc, s)
       case v: String if sc contains v => sc(v).asInstanceOf[Variable].value
       case v                          => v
