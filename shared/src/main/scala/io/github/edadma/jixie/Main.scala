@@ -10,7 +10,8 @@ import io.github.edadma.json.DefaultJSONReader
     DefaultJSONReader.fromString(
       """
         |[
-        |  ["display", 123]
+        |  ["define", "x", 3],
+        |  ["display", "answer", ["+", "x", 4]]
         |]
         |""".stripMargin,
     )
