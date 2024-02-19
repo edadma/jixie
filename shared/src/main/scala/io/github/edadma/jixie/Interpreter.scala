@@ -16,7 +16,7 @@ class Interpreter:
   val global: Scope = new Scope
 
   List(
-    Builtin("+", (_, args) => args.asInstanceOf[Seq[Number]].map(_.doubleValue).sum),
+    Builtin("+", (sc, args) => evalSeq(sc, args).asInstanceOf[Seq[Number]].map(_.doubleValue).sum),
     Builtin("begin", (sc, args) => evalBegin(sc, args)),
     Builtin(
       "define",
@@ -32,7 +32,7 @@ class Interpreter:
     code match
       case Seq(name: String, args*) if sc contains name =>
         sc(name) match
-          case Builtin(_, func) => func(sc, evalSeq(sc, args).toIndexedSeq)
+          case Builtin(_, func) => func(sc, args.toIndexedSeq)
           case _                => ???
       case s: Seq[?]                  => evalSeq(sc, s)
       case v: String if sc contains v => sc(v).asInstanceOf[Variable].value
