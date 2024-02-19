@@ -22,6 +22,8 @@ class Interpreter:
       "define",
       (sc, args) => sc define Variable(args(0).toString, eval(sc, args(1))),
     ),
+    Builtin("quote", (sc, args) => eval(sc, args(0))),
+    Builtin("display", (sc, args) => println(evalSeq(sc, args) mkString ", ")),
   ) foreach (df => global define df)
 
   def run(code: Seq[Any]): Any = evalBegin(global, code)
