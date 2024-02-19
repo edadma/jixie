@@ -4,7 +4,7 @@ import pprint.pprintln
 
 @main def run(): Unit =
   val interp = new Interpreter
-  val result = interp.run(Seq(Seq("+", 3, 4)))
+  val result = interp.run(Seq(Seq("define", "x", 3), Seq("+", "x", 4)))
 
   pprintln(result)
 

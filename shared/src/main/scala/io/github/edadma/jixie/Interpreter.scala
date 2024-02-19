@@ -2,49 +2,44 @@ package io.github.edadma.jixie
 
 import scala.annotation.tailrec
 import scala.collection.immutable.Seq
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 abstract class Type
 case object STRING extends Type
 case object NUMBER extends Type
 case object ANY extends Type
 
-case class Form(expr: Any, args: IndexedSeq[Type])
-
-abstract class JixieFunction { val name: String }
-case class BuiltinFunction(name: String, func: (Scope, IndexedSeq[Any]) => Any) extends JixieFunction
+abstract class Define { val name: String }
+case class Builtin(name: String, func: (Scope, IndexedSeq[Any]) => Any) extends Define
+case class Variable(name: String, var value: Any) extends Define
 
 class Interpreter:
   val global: Scope = new Scope
-  val forms = new ListBuffer[Form]
-  val functions = new mutable.HashMap[String, JixieFunction]
 
   List(
-    BuiltinFunction("+", (_, args) => args.asInstanceOf[Seq[Number]].map(_.doubleValue).sum),
-    BuiltinFunction("begin", (sc, args) => evalExpressions(sc, args)),
-  ) foreach { case f @ BuiltinFunction(name, _) =>
-    functions(name) = f
-  }
+    Builtin("+", (_, args) => args.asInstanceOf[Seq[Number]].map(_.doubleValue).sum),
+    Builtin("begin", (sc, args) => evalBegin(sc, args)),
+    Builtin(
+      "define",
+      (sc, args) => sc define Variable(args(0).toString, eval(sc, args(1))),
+    ),
+  ) foreach (df => global define df)
 
-  def run(code: Seq[Any]): Any = evalExpressions(global, code)
-
-  def form(expr: Any, args: Type*): Unit =
-    forms += Form(expr, args.toIndexedSeq)
+  def run(code: Seq[Any]): Any = evalBegin(global, code)
 
   def eval(sc: Scope, code: Any): Any =
     code match
-      case Seq(name: String, args*) if functions contains name =>
-        functions(name) match
-          case BuiltinFunction(_, func) => func(sc, evalList(sc, args).toIndexedSeq)
-          case _                        => ???
-      case s: Seq[?] => evalExpressions(sc, s)
-      case v         => v
+      case Seq(name: String, args*) if sc contains name =>
+        sc(name) match
+          case Builtin(_, func) => func(sc, evalSeq(sc, args).toIndexedSeq)
+          case _                => ???
+      case s: Seq[?]                  => evalSeq(sc, s)
+      case v: String if sc contains v => sc(v).asInstanceOf[Variable].value
+      case v                          => v
 
   @tailrec
-  final def evalExpressions(sc: Scope, code: Seq[Any], result: Any = ()): Any =
+  final def evalBegin(sc: Scope, code: Seq[Any], result: Any = ()): Any =
     code match
-      case head :: tail => evalExpressions(sc, tail, eval(sc, head))
+      case head :: tail => evalBegin(sc, tail, eval(sc, head))
       case Nil          => result
 
-  def evalList(sc: Scope, list: Seq[Any]): Seq[Any] = list map (a => eval(sc, a))
+  def evalSeq(sc: Scope, list: Seq[Any]): Seq[Any] = list map (a => eval(sc, a))
