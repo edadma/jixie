@@ -2,9 +2,21 @@ package io.github.edadma.jixie
 
 import pprint.pprintln
 
+import io.github.edadma.json.DefaultJSONReader
+
 @main def run(): Unit =
   val interp = new Interpreter
-  val result = interp.run(Seq(Seq("define", "x", 3), Seq("display", "answer", Seq("+", "x", 4))))
+  val program =
+    DefaultJSONReader.fromString(
+      """
+        |[
+        |  ["display", 123]
+        |]
+        |""".stripMargin,
+    )
+  val result = interp.run(
+    program.asInstanceOf[Seq[Any]],
+  ) // Seq(Seq("define", "x", 3), Seq("display", "answer", Seq("+", "x", 4))))
 
 //  pprintln(result)
 

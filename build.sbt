@@ -23,9 +23,10 @@ lazy val jixie = crossProject(JSPlatform, JVMPlatform, NativePlatform)
     githubOwner := "edadma",
     githubRepository := name.value,
     libraryDependencies += "org.scalatest" %%% "scalatest" % "3.2.17" % "test",
-//    libraryDependencies ++= Seq(
+    libraryDependencies ++= Seq(
 //      "io.github.edadma" %%% "cross-platform" % "0.1.5"
-//    ),
+      "io.github.edadma" %%% "json" % "0.1.14",
+    ),
     libraryDependencies ++= Seq(
       "com.github.scopt" %%% "scopt" % "4.1.0",
       "com.lihaoyi" %%% "pprint" % "0.8.1", /*% "test"*/

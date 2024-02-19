@@ -38,10 +38,12 @@ class Interpreter:
       case v: String if sc contains v => sc(v).asInstanceOf[Variable].value
       case v                          => v
 
-  @tailrec
-  final def evalBegin(sc: Scope, code: Seq[Any], result: Any = ()): Any =
-    code match
-      case head :: tail => evalBegin(sc, tail, eval(sc, head))
-      case Nil          => result
+  final def evalBegin(sc: Scope, code: Seq[Any]): Any =
+    val it = code.iterator
+    var result: Any = null
+
+    while it.hasNext do result = eval(sc, it.next)
+
+    result
 
   def evalSeq(sc: Scope, list: Seq[Any]): Seq[Any] = list map (a => eval(sc, a))
