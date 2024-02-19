@@ -1,6 +1,8 @@
 package io.github.edadma.jixie
 
 import scala.annotation.tailrec
+import math.*
+
 import scala.collection.immutable.Seq
 
 abstract class Type
@@ -11,6 +13,7 @@ case object ANY extends Type
 abstract class Define { val name: String }
 case class Function(name: String, func: IndexedSeq[Any] => Any) extends Define
 case class NumericalFunction(name: String, func: IndexedSeq[Double] => Any) extends Define
+case class NumberFunction(name: String, func: Double => Any) extends Define
 case class Builtin(name: String, func: (Scope, IndexedSeq[Any]) => Any) extends Define
 case class Variable(name: String, var value: Any) extends Define
 
@@ -19,6 +22,8 @@ class Interpreter:
 
   List(
     NumericalFunction("+", _.sum),
+    NumericalFunction("-", args => args.head - args.drop(1).sum),
+    NumberFunction("sqrt", sqrt),
     Function("display", args => println(args mkString ", ")),
     Builtin("begin", (sc, args) => evalBegin(sc, args)),
     Builtin(
@@ -37,8 +42,8 @@ class Interpreter:
           case Function(_, func) => func(evalSeq(sc, args).toIndexedSeq)
           case NumericalFunction(_, func) =>
             func(evalSeq(sc, args).asInstanceOf[Seq[Number]].map(_.doubleValue).toIndexedSeq)
-          case Builtin(_, func) => func(sc, args.toIndexedSeq)
-          case _                => ???
+          case NumberFunction(_, func) => func(eval(sc, args.head).asInstanceOf[Number].doubleValue)
+          case Builtin(_, func)        => func(sc, args.toIndexedSeq)
       case s: Seq[?]                  => evalSeq(sc, s)
       case v: String if sc contains v => sc(v).asInstanceOf[Variable].value
       case v                          => v

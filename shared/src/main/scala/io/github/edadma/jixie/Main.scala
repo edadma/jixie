@@ -12,6 +12,7 @@ import io.github.edadma.json.DefaultJSONReader
         |[
         |  ["define", "x", 3],
         |  ["display", ["+", "x", 4]],
+        |  ["display", ["sqrt", 2]],
         |  ["define", "y", ["quote", "x"]],
         |  ["display", "y"]
         |]
