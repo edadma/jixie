@@ -5,6 +5,8 @@ import math.*
 
 import scala.collection.immutable.Seq
 
+import math.Ordered.orderingToOrdered
+
 abstract class Type
 case object STRING extends Type
 case object NUMBER extends Type
@@ -12,7 +14,7 @@ case object ANY extends Type
 
 abstract class Define { val name: String }
 case class Function(name: String, func: IndexedSeq[Any] => Any) extends Define
-case class NumericalFunction(name: String, func: IndexedSeq[Double] => Any) extends Define
+case class NumericalFunction(name: String, func: Seq[Double] => Any) extends Define
 case class NumberFunction(name: String, func: Double => Any) extends Define
 case class Builtin(name: String, func: (Scope, IndexedSeq[Any]) => Any) extends Define
 case class Variable(name: String, var value: Any) extends Define
@@ -25,6 +27,14 @@ class Interpreter:
     NumericalFunction("-", args => args.head - args.drop(1).sum),
     NumberFunction("sqrt", sqrt),
     Function("display", args => println(args mkString ", ")),
+    Function("=", args => args.isEmpty || args.tail.forall(_ == args.head)),
+    Function(
+      "<",
+      args =>
+        args.isEmpty || args.length == 1 || args.sliding(2).forall { case Seq(a, b) =>
+          a.asInstanceOf[Comparable[Any]] < b.asInstanceOf[Comparable[Any]]
+        },
+    ),
     Builtin("begin", (sc, args) => evalBegin(sc, args)),
     Builtin(
       "define",
@@ -41,7 +51,7 @@ class Interpreter:
         sc(name) match
           case Function(_, func) => func(evalSeq(sc, args).toIndexedSeq)
           case NumericalFunction(_, func) =>
-            func(evalSeq(sc, args).asInstanceOf[Seq[Number]].map(_.doubleValue).toIndexedSeq)
+            func(evalSeq(sc, args).asInstanceOf[Seq[Number]].map(_.doubleValue))
           case NumberFunction(_, func) => func(eval(sc, args.head).asInstanceOf[Number].doubleValue)
           case Builtin(_, func)        => func(sc, args.toIndexedSeq)
       case s: Seq[?]                  => evalSeq(sc, s)
