@@ -28,11 +28,33 @@ class Interpreter:
     NumberFunction("sqrt", sqrt),
     Function("display", args => println(args mkString ", ")),
     Function("=", args => args.isEmpty || args.tail.forall(_ == args.head)),
+    Function("!=", args => args.isEmpty || args.tail.exists(_ != args.head)),
     Function(
       "<",
       args =>
         args.isEmpty || args.length == 1 || args.sliding(2).forall { case Seq(a, b) =>
           a.asInstanceOf[Comparable[Any]] < b.asInstanceOf[Comparable[Any]]
+        },
+    ),
+    Function(
+      ">",
+      args =>
+        args.isEmpty || args.length == 1 || args.sliding(2).forall { case Seq(a, b) =>
+          a.asInstanceOf[Comparable[Any]] > b.asInstanceOf[Comparable[Any]]
+        },
+    ),
+    Function(
+      "<=",
+      args =>
+        args.isEmpty || args.length == 1 || args.sliding(2).forall { case Seq(a, b) =>
+          a.asInstanceOf[Comparable[Any]] <= b.asInstanceOf[Comparable[Any]]
+        },
+    ),
+    Function(
+      ">=",
+      args =>
+        args.isEmpty || args.length == 1 || args.sliding(2).forall { case Seq(a, b) =>
+          a.asInstanceOf[Comparable[Any]] >= b.asInstanceOf[Comparable[Any]]
         },
     ),
     Builtin("begin", (sc, args) => evalBegin(sc, args)),
@@ -41,9 +63,20 @@ class Interpreter:
       (sc, args) => sc define Variable(args(0).toString, eval(sc, args(1))),
     ),
     Builtin("quote", (_, args) => args(0)),
+    Builtin(
+      "and",
+      (sc, args) => args forall (a => evalBoolean(sc, a)),
+    ),
+    Builtin(
+      "or",
+      (sc, args) => args exists (a => evalBoolean(sc, a)),
+    ),
+    Builtin("not", (sc, args) => evalBoolean(sc, args(0))),
   ) foreach (df => global define df)
 
   def run(code: Seq[Any]): Any = evalBegin(global, code)
+
+  def evalBoolean(sc: Scope, code: Any): Boolean = eval(sc, code).asInstanceOf[Boolean]
 
   def eval(sc: Scope, code: Any): Any =
     code match
